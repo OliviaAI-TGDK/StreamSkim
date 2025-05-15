@@ -1,0 +1,73 @@
+# OliviaAI_StreamSkim.nlp
+# Quantum NLP Skim Engine – Stream Processor for TGDK Missing Person Detection Stack
+# Copyright TGDK. All rights reserved.
+
+import json
+import os
+import time
+import requests
+from duo_vector_predictor import DuoVectorPredictor
+from mahadevi_trace_geometry import MahadeviTracer
+from maharaga_cluster_map import MaharagaClusterMap
+
+TELEMETRY_FILE = "/tmp/bluepill_vector.json"
+INTERPLEX_URL = "http://localhost:8080/gentuo-valhalla-interplex/telemetry"
+
+# Initialize modules
+duo = DuoVectorPredictor()
+mahadevi = MahadeviTracer()
+maharaga = MaharagaClusterMap()
+
+def load_telemetry():
+    try:
+        with open(TELEMETRY_FILE, "r") as f:
+            data = json.load(f)
+        return data
+    except Exception as e:
+        print(f"[StreamSkim] Telemetry read error: {e}")
+        return None
+
+def analyze_packet(packet):
+    beacon = packet.get("beacon")
+    q_vector = packet.get("q_vector")
+    geo_prediction = duo.predict_vector(q_vector)
+    shape_trace = mahadevi.trace_geometry(geo_prediction)
+    cluster_zones = maharaga.cluster_zone_predict(geo_prediction)
+
+    print(f"[StreamSkim] Beacon: {beacon}")
+    print(f"[StreamSkim] Geo Prediction: {geo_prediction}")
+    print(f"[StreamSkim] Shape Trace: {shape_trace}")
+    print(f"[StreamSkim] Cluster Zones: {cluster_zones}")
+
+    return {
+        "beacon": beacon,
+        "geo_prediction": geo_prediction,
+        "trace": shape_trace,
+        "clusters": cluster_zones
+    }
+
+def forward_to_interplex(results):
+    try:
+        r = requests.post(f"{INTERPLEX_URL}/analysis", json=results)
+        print(f"[StreamSkim] Forwarded analysis. Status: {r.status_code}")
+    except Exception as e:
+        print(f"[StreamSkim] Forwarding failed: {e}")
+
+if __name__ == "__main__":
+    print("[StreamSkim] OliviaAI NLP Skim Processor Initialized.")
+    last_checksum = None
+
+    while True:
+        if os.path.exists(TELEMETRY_FILE):
+            try:
+                with open(TELEMETRY_FILE, "rb") as f:
+                    checksum = hash(f.read())
+                if checksum != last_checksum:
+                    packet = load_telemetry()
+                    if packet:
+                        analysis_result = analyze_packet(packet)
+                        forward_to_interplex(analysis_result)
+                    last_checksum = checksum
+            except Exception as e:
+                print(f"[StreamSkim] Watch cycle error: {e}")
+        time.sleep(5)
