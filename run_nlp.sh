@@ -1,15 +1,18 @@
-#!/data/data/com.termux/files/usr/bin/bash
-# Bluepill Telemetry Watcher – OliviaAI Auto-Executor
-echo "[Bluepill Listener] Activated. Monitoring telemetry vectors..."
+# run_nlp.py
+import os
+import json
 
-TELEMETRY_PATH="/data/data/com.termux/files/home/.bluepill_vector.json"
-WATCHDIR="$(dirname "$TELEMETRY_PATH")"
-FILENAME="$(basename "$TELEMETRY_PATH")"
+print("[Bluepill Listener] Activated. Monitoring telemetry vectors...")
 
-inotifywait -m -e close_write --format "%w%f" "$WATCHDIR" 2>/dev/null | while read FILE
-do
-    if [[ "$FILE" == "$TELEMETRY_PATH" ]]; then
-        echo "[Bluepill Listener] New vector detected. Launching OliviaAI StreamSkim..."
-        python run_nlp.py
-    fi
-done
+telemetry_path = "/data/data/com.termux/files/home/.bluepill_vector.json"
+
+try:
+    with open(telemetry_path, "r") as f:
+        data = json.load(f)
+        print("[run_nlp] Beacon:", data.get("beacon", "N/A"))
+        print("[run_nlp] Interface:", data.get("interface", "unknown"))
+        print("[run_nlp] Q-Vector:", data.get("q_vector", ""))
+        # Simulate call to NLP modules
+        os.system("echo '[run_nlp] Processing through OliviaAI NLP...'")
+except Exception as e:
+    print("[run_nlp] Error reading telemetry:", e)
