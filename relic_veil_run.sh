@@ -15,7 +15,7 @@ python3 mushi_nullwave.py --scan-loop --range infra-ultralow
 
 # Step 3: TETRADEN + TETRAFI Hardware Acceleration
 echo "[FRDS VII] :: Running TETRAFI Adaptive Loop..."
-lua tetraduo.lua --mode adaptive
+luajit tetraduo.lua --mode adaptive
 
 # Step 4: OliviaAI Symbolic Relic Tracing
 echo "[FRDS VII] :: Triggering OliviaAI Symbolic Trace on Density Map..."
